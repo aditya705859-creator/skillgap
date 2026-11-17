@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}New analysis – SkillGap{% endblock %}
+
+{% block content %}
+<main class="page-content">
+  <div class="container" style="max-width:720px">
+    <div class="mb-32">
+      <h1 style="margin-bottom:8px">New analysis</h1>
+      <p>Upload your resume and paste the job description. The analysis takes about 10 seconds.</p>
+    </div>
+
+    {% if errors %}
+    {% for err in errors %}
+    <div class="alert alert-error">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      {{ err }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="post" action="/analysis/new" enctype="multipart/form-data" id="analysis-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <!-- Step 1: Resume upload -->
+      <div class="card mb-24">
+        <div class="flex items-center gap-12 mb-16">
+          <div class="step-number" style="min-width:32px;height:32px;font-size:0.875rem">1</div>
+          <div>
+            <h2 style="font-size:1rem;margin-bottom:0">Upload your resume</h2>
+            <p style="font-size:0.8125rem;margin:0">PDF only, max 10 MB</p>
+          </div>
+        </div>
+
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-zone-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="12" y2="12"/>
+              <line x1="15" y1="15" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <div class="upload-zone-text">Drag and drop your PDF here, or <strong>click to browse</strong></div>
+          <div class="upload-zone-hint">PDF files only · Max 10 MB</div>
+        </div>
+        <div id="file-info" style="margin-top:8px"></div>
+        <input type="file" id="resume-file" name="resume_file" accept=".pdf" style="display:none">
+      </div>
+
+      <!-- Step 2: Job description -->
+      <div class="card mb-24">
+        <div class="flex items-center gap-12 mb-16">
+          <div class="step-number" style="min-width:32px;height:32px;font-size:0.875rem">2</div>
+          <div>
+            <h2 style="font-size:1rem;margin-bottom:0">Paste the job description</h2>
+            <p style="font-size:0.8125rem;margin:0">Copy from any job listing</p>
+          </div>
+        </div>
+
+        <div style="margin-bottom:8px">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="useSampleJD()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Use sample job description
+          </button>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0">
+          <label for="jd_text" class="form-label">Job description</label>
+          <textarea
+            id="jd_text"
+            name="jd_text"
+            class="form-input"
+            rows="12"
+            placeholder="Paste the full job description here..."
+            required
+            minlength="50"
+          >{{ form_jd|default('') }}</textarea>
+          <div class="form-hint">The more detail you paste, the more accurate the analysis.</div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="flex gap-12">
+        <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Analyse my resume
+        </button>
+        <a href="/dashboard" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+
+<div id="loading-overlay" class="loading-overlay">
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <h3 style="margin-top:16px;font-size:1rem">Analysing your resume…</h3>
+    <div class="loading-stage" id="loading-stage">Reading PDF…</div>
+    <div style="margin-top:16px;font-size:0.8125rem;color:var(--text-tertiary)">This takes about 10 seconds</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var SAMPLE_JD = {{ sample_jd|tojson }};
+
+function useSampleJD() {
+  document.getElementById('jd_text').value = SAMPLE_JD;
+}
+
+initUploadZone('upload-zone', 'resume-file', 'file-info');
+
+document.getElementById('analysis-form').addEventListener('submit', function(e) {
+  var stages = [
+    'Reading PDF…',
+    'Detecting sections…',
+    'Extracting skills from resume…',
+    'Parsing job description…',
+    'Matching skills…',
+    'Computing score…',
+    'Ranking roles…',
+    'Building roadmap…',
+    'Almost done…',
+  ];
+  showLoading(stages);
+  document.getElementById('submit-btn').disabled = true;
+});
+</script>
+{% endblock %}

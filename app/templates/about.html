@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}About & Methodology – SkillGap{% endblock %}
+
+{% block content %}
+<main class="page-content">
+  <div class="container" style="max-width:880px">
+    <div class="mb-32">
+      <h1 style="margin-bottom:8px">About & Methodology</h1>
+      <p>Data science methodologies, scoring mathematics, privacy principles, and transparent benchmark results.</p>
+    </div>
+
+    <!-- Section 1: How the score is calculated -->
+    <div class="card mb-24">
+      <h2 style="font-size:1.25rem;margin-bottom:12px">How the SkillGap score is calculated</h2>
+      <p style="margin-bottom:16px">
+        SkillGap computes an explainable, deterministic score from 0 to 100 representing how well a candidate's resume covers the skill demands of a specific job description. Rather than using an uninterpretable deep neural network, our scoring model breaks down into four explicit components:
+      </p>
+
+      <div class="grid grid-2 mb-16" style="gap:16px">
+        <div class="stat-card" style="text-align:left;align-items:flex-start">
+          <div style="font-weight:700;color:var(--accent);font-size:1.125rem">60% · Exact Match</div>
+          <p style="font-size:0.8125rem;margin-top:4px">
+            The proportion of job description skills found directly in the candidate's resume using word-boundary alias matching.
+          </p>
+        </div>
+        <div class="stat-card" style="text-align:left;align-items:flex-start">
+          <div style="font-weight:700;color:var(--partial);font-size:1.125rem">20% · Partial Match</div>
+          <p style="font-size:0.8125rem;margin-top:4px">
+            Credit granted for related skills (e.g., PyTorch for Deep Learning, PostgreSQL for SQL) via cosine similarity and ontology mapping.
+          </p>
+        </div>
+        <div class="stat-card" style="text-align:left;align-items:flex-start">
+          <div style="font-weight:700;color:var(--text-primary);font-size:1.125rem">10% · Category Coverage</div>
+          <p style="font-size:0.8125rem;margin-top:4px">
+            Measures breadth across foundational domains (Programming, Databases, Cloud, Machine Learning, Visualization, Statistics).
+          </p>
+        </div>
+        <div class="stat-card" style="text-align:left;align-items:flex-start">
+          <div style="font-weight:700;color:var(--matched);font-size:1.125rem">10% · Resume Quality</div>
+          <p style="font-size:0.8125rem;margin-top:4px">
+            Heuristic score based on structured section headers (Skills, Experience, Projects, Education) and extraction confidence.
+          </p>
+        </div>
+      </div>
+
+      <div style="font-size:0.875rem;color:var(--text-secondary);background:var(--bg-secondary);padding:12px 16px;border-radius:var(--radius-md)">
+        <strong>Grade scale:</strong> 
+        <span class="chip chip-matched" style="margin-left:8px">A (90+)</span>
+        <span class="chip chip-matched" style="margin-left:4px">B (75–89)</span>
+        <span class="chip chip-partial" style="margin-left:4px">C (55–74)</span>
+        <span class="chip chip-missing" style="margin-left:4px">D (35–54)</span>
+        <span class="chip chip-missing" style="margin-left:4px">F (&lt;35)</span>
+      </div>
+    </div>
+
+    <!-- Section 2: Data Science Methods -->
+    <div class="card mb-24">
+      <h2 style="font-size:1.25rem;margin-bottom:12px">Data science techniques used</h2>
+      <ul style="padding-left:20px;color:var(--text-secondary);line-height:1.7;font-size:0.9375rem">
+        <li><strong>PDF Parsing & Section Recognition:</strong> PyMuPDF extracts raw text without OCR latency. Regular expressions detect key resume blocks (Skills, Experience, Projects, Education) for section-weighted confidence scoring.</li>
+        <li><strong>Rule-Based Boundary Extraction:</strong> Look-around regular expressions with word boundary guards prevent substring false positives (e.g. distinguishing 'Excel' from 'excellent', 'Java' from 'JavaScript', 'Git' from 'digital', and 'ML' from 'HTML'). Special terms (C++, C#, Node.js, CI/CD, scikit-learn) have dedicated token rules.</li>
+        <li><strong>TF-IDF Skill Importance Weighting:</strong> Scikit-learn TF-IDF vectorizers fitted on an industry job corpus weigh rare specialized skills higher than ubiquitous baseline terminology.</li>
+        <li><strong>Sub-word & Character n-gram Cosine Similarity:</strong> Partial matches calculate character 2-4 gram TF-IDF cosine similarity to recognize near-synonyms, coupled with domain relation mappings.</li>
+        <li><strong>Topological Prerequisite Sorting:</strong> NetworkX directed acyclic graphs (DAGs) model skill prerequisites to generate logically ordered learning sequences.</li>
+        <li><strong>Clustering & Dimensionality Reduction:</strong> Scikit-learn PCA projects high-dimensional skill spaces to 2D coordinates alongside K-Means (k=5) cluster segmentation.</li>
+      </ul>
+    </div>
+
+    <!-- Section 3: Model Evaluation Benchmark -->
+    <div class="card mb-24">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Model evaluation benchmark</h2>
+          <p style="font-size:0.8125rem;margin:0">Computed live on {{ eval_results.total }} hand-labelled test cases covering edge cases and boundary traps.</p>
+        </div>
+      </div>
+
+      <!-- Live metrics -->
+      <div class="grid grid-3 mb-16" style="gap:16px">
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--accent)">{{ "%.1f"|format(eval_results.precision * 100) }}%</div>
+          <div class="stat-label">Precision</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--accent)">{{ "%.1f"|format(eval_results.recall * 100) }}%</div>
+          <div class="stat-label">Recall</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--accent)">{{ "%.1f"|format(eval_results.f1 * 100) }}%</div>
+          <div class="stat-label">F1-Score</div>
+        </div>
+      </div>
+
+      <div class="table-wrap mb-12">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Test description</th>
+              <th>Expected skills</th>
+              <th>Extracted skills</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tc in eval_results.results %}
+            <tr>
+              <td style="font-family:monospace;font-size:0.75rem">{{ tc.id }}</td>
+              <td>{{ tc.description }}</td>
+              <td style="font-size:0.8125rem">
+                {% if tc.expected %}
+                  {{ tc.expected|join(', ') }}
+                {% else %}
+                  <span style="color:var(--text-tertiary)">None (traps only)</span>
+                {% endif %}
+              </td>
+              <td style="font-size:0.8125rem">
+                {% if tc.extracted %}
+                  {{ tc.extracted|join(', ') }}
+                {% else %}
+                  <span style="color:var(--text-tertiary)">None</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if tc.passed %}
+                <span class="chip chip-matched" style="font-size:0.75rem">Pass</span>
+                {% else %}
+                <span class="chip chip-missing" style="font-size:0.75rem">Fail</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert alert-info" style="margin:0;font-size:0.8125rem">
+        <strong>Honest limitation note:</strong> {{ eval_results.note }} In real-world resumes with unconventional layouts, multi-column tables, or atypical section headers, extraction accuracy may vary.
+      </div>
+    </div>
+
+    <!-- Section 4: Critical Limitations -->
+    <div class="card mb-24">
+      <h2 style="font-size:1.25rem;margin-bottom:12px;color:var(--missing)">Important limitations</h2>
+      <p style="font-size:0.9375rem;margin-bottom:8px">
+        <strong>The SkillGap score is NOT a hiring prediction:</strong>
+      </p>
+      <ul style="padding-left:20px;color:var(--text-secondary);line-height:1.6;font-size:0.875rem">
+        <li>A high score does not guarantee interviews or job offers. Hiring decisions depend on leadership, communication, problem-solving, culture fit, and practical project depth.</li>
+        <li>The system evaluates textual alignment between the resume and the job description. It does not verify verified competence or portfolio credibility.</li>
+        <li>PDFs that are purely flattened images (scanned documents) without embedded text layers cannot be read and will yield 0 extracted skills.</li>
+      </ul>
+    </div>
+
+    <!-- Section 5: Privacy Statement -->
+    <div class="card">
+      <h2 style="font-size:1.25rem;margin-bottom:12px">Privacy statement</h2>
+      <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.6;margin-bottom:8px">
+        SkillGap is an educational course project designed with strict privacy boundaries:
+      </p>
+      <ul style="padding-left:20px;color:var(--text-secondary);line-height:1.6;font-size:0.875rem">
+        <li>Your resumes and job descriptions are processed locally or on your deployed instance.</li>
+        <li>We do not sell, rent, or distribute candidate resumes or personal data to third-party recruiters or commercial platforms.</li>
+        <li>You can permanently delete your uploaded resumes, generated analyses, and entire account at any time from the <a href="/account">Account Settings</a> page.</li>
+      </ul>
+    </div>
+
+  </div>
+</main>
+{% endblock %}

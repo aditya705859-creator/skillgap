@@ -1,0 +1,86 @@
+skill_name,category,aliases,difficulty,prerequisites,learning_hours,description
+Python,Programming,py|python3,Beginner,,20,The foundational language of modern data science and machine learning.
+R,Programming,r language|r programming,Intermediate,,50,Industry standard for academic statistical computing and bioinformatics.
+SQL,Database,mysql|postgresql|sqlite|plsql|t-sql,Beginner,,20,Crucial for querying enterprise data warehouses and relational databases.
+Java,Programming,core java|j2ee,Intermediate,,50,Powers high-throughput enterprise backends and big data processing engines.
+C++,Programming,cpp|c plus plus,Advanced,,100,Essential for high-performance computing and low-latency ML inference.
+C#,Programming,c-sharp|csharp|.net,Intermediate,,50,Core language for Microsoft enterprise stack and game development.
+JavaScript,Programming,js|es6|vanilla js,Beginner,,20,Essential for interactive web applications and full-stack integration.
+TypeScript,Programming,ts,Intermediate,JavaScript,50,Adds static typing to JavaScript for robust production-grade web systems.
+Go,Programming,golang,Intermediate,,50,Preferred for scalable cloud services and microservice architectures.
+Rust,Programming,rustlang,Advanced,,100,Memory-safe systems programming increasingly used in high-performance ML tools.
+Scala,Programming,scala language,Advanced,Java,100,Key language for high-throughput distributed big data systems like Apache Spark.
+Bash/Shell,DevOps,bash|shell script|shell scripting|sh,Beginner,,20,Fundamental for Linux automation and deployment scripting.
+HTML,Programming,html5,Beginner,,20,The structural backbone of the web used in data dashboards and web scraping.
+CSS,Programming,css3,Beginner,HTML,20,Styles modern analytical user interfaces and web applications.
+Pandas,Data Analysis,dataframes|pd,Beginner,Python,20,The primary library for tabular data manipulation and exploratory analysis.
+NumPy,Data Analysis,np|numerical python,Beginner,Python,20,Underpins all scientific computing and multi-dimensional array math in Python.
+Polars,Data Analysis,polars dataframe|pl,Intermediate,Python,50,High-performance Rust-based multi-threaded DataFrame library for large datasets.
+SciPy,Data Analysis,scientific python,Intermediate,NumPy,50,Standard library for scientific routines and advanced statistical distributions.
+Excel,Data Analysis,ms excel|spreadsheets|microsoft excel,Beginner,,20,Universal business communication and rapid tabular data modeling tool.
+DAX,Data Analysis,data analysis expressions,Intermediate,Excel,50,Formula language used in Power BI for advanced business metrics.
+Machine Learning,AI/ML,ml|supervised learning|unsupervised learning,Intermediate,"Python,Statistics",50,Enables computers to discover predictive patterns from historical data.
+Scikit-learn,AI/ML,sklearn|scikit learn|scikit-learn,Intermediate,"Python,NumPy,Machine Learning",50,Industry-standard Python toolkit for traditional machine learning algorithms.
+XGBoost,AI/ML,extreme gradient boosting,Intermediate,"Python,Scikit-learn",50,Winning gradient boosting algorithm widely used in industry tabular models.
+LightGBM,AI/ML,lgbm,Intermediate,"Python,Scikit-learn",50,Fast and scalable gradient boosting optimized for massive tabular datasets.
+Feature Engineering,AI/ML,feature selection|feature extraction,Intermediate,"Pandas,Statistics",50,Transforms raw signals into informative predictive features for models.
+Model Evaluation,AI/ML,cross validation|hyperparameter tuning|grid search,Intermediate,"Scikit-learn,Statistics",50,Prevents data leakage and ensures models generalize to production data.
+Deep Learning,AI/ML,dl|neural networks|ann,Advanced,"Machine Learning,Python",100,"Powers computer vision, speech recognition, and generative AI models."
+PyTorch,AI/ML,torch|torchvision,Advanced,"Deep Learning,Python",100,The dominant research and production deep learning framework worldwide.
+TensorFlow,AI/ML,tf|tensorflow2,Advanced,"Deep Learning,Python",100,Google's end-to-end open-source machine learning and deep learning ecosystem.
+Keras,AI/ML,keras api,Intermediate,"TensorFlow,Deep Learning",50,High-level deep learning interface for rapid neural network prototyping.
+CNN,AI/ML,convolutional neural networks|convnets,Advanced,Deep Learning,100,Neural network architecture designed for spatial image and grid data.
+RNN,AI/ML,recurrent neural networks|lstm|gru,Advanced,Deep Learning,100,Sequence model architecture historically used for language and time series.
+Transformers,AI/ML,transformer architecture|attention mechanism,Advanced,Deep Learning,100,Self-attention foundation for all modern Large Language Models.
+HuggingFace,AI/ML,hugging face|transformers library,Intermediate,PyTorch,50,The standard library and repository for pre-trained AI foundation models.
+LLMs,AI/ML,large language models|generative ai|genai,Advanced,Transformers,100,"Powers modern generative applications, agentic workflows, and semantic search."
+LangChain,AI/ML,lang chain|langgraph,Intermediate,LLMs,50,Orchestration framework for connecting LLMs to external APIs and databases.
+RAG,AI/ML,retrieval augmented generation|vector search,Intermediate,LLMs,50,Grounds generative language models on private corporate knowledge stores.
+NLP,AI/ML,natural language processing|text mining,Intermediate,"Machine Learning,Python",50,Transforms human text into computable representations and insights.
+spaCy,AI/ML,spacy nlp,Intermediate,NLP,50,Production-grade industrial-strength NLP library for NER and tokenization.
+NLTK,AI/ML,natural language toolkit,Beginner,NLP,20,"Educational toolkit for text parsing, stemming, and linguistic analysis."
+Computer Vision,AI/ML,cv|image processing,Advanced,"Deep Learning,Python",100,Enables systems to derive meaningful information from visual media.
+OpenCV,AI/ML,cv2|computer vision library,Intermediate,Computer Vision,50,Fast C++ and Python library for real-time computer vision manipulation.
+Statistics,Mathematics,statistical analysis|inferential statistics,Intermediate,,50,Mathematical foundation for hypothesis testing and algorithmic validation.
+Probability,Mathematics,probability theory|bayesian,Intermediate,,50,Essential for uncertainty quantification and probabilistic machine learning.
+Linear Algebra,Mathematics,matrix operations|eigenvalues,Intermediate,,50,The fundamental mathematics powering all vector embeddings and neural layers.
+Hypothesis Testing,Mathematics,p-value|t-test|anova,Intermediate,Statistics,50,Determines whether experimental business effects are statistically significant.
+A/B Testing,Mathematics,ab testing|controlled experiments,Intermediate,Hypothesis Testing,50,Validates product features and algorithms against user baseline metrics.
+Time Series Analysis,Mathematics,time series forecasting|arima|prophet,Intermediate,"Statistics,Python",50,"Models trend and seasonality in economic, financial, and sensor data."
+PostgreSQL,Database,postgres|psql,Intermediate,SQL,50,Most advanced open-source relational database with rich JSON and vector extensions.
+MySQL,Database,my-sql,Beginner,SQL,20,Widely deployed transactional relational database for web services.
+SQLite,Database,sqlite3,Beginner,SQL,20,Embedded serverless database ideal for local storage and micro-applications.
+MongoDB,Database,mongo|nosql,Beginner,,20,Leading document database for storing flexible schema JSON structures.
+Redis,Database,redis cache|in-memory store,Intermediate,,50,In-memory data store used for low-latency caching and real-time queues.
+Snowflake,Database,snowflake data warehouse,Intermediate,SQL,50,Cloud-native data warehouse separating storage and compute elastically.
+BigQuery,Database,google bigquery|bq,Intermediate,SQL,50,"Serverless, highly scalable multi-cloud data warehouse from Google Cloud."
+Spark,Big Data,apache spark|pyspark,Advanced,"Python,SQL",100,Unified distributed analytics engine for large-scale data engineering.
+Hadoop,Big Data,hdfs|mapreduce,Advanced,,100,Pioneering distributed file system and processing framework for big data.
+Apache Kafka,Big Data,kafka|event streaming,Advanced,,100,Distributed event streaming platform for high-throughput real-time ingestion.
+Airflow,Big Data,apache airflow|workflow orchestration,Intermediate,Python,50,Standard programmatic workflow management and pipeline scheduling platform.
+dbt,Big Data,data build tool,Intermediate,SQL,50,Modern transformation tool enabling analytics engineers to model data using SQL.
+Data Warehousing,Big Data,data warehouse|star schema|snowflake schema,Intermediate,SQL,50,Centralized repository architecture integrating data from multiple business systems.
+Git,DevOps,version control|github|gitlab,Beginner,,20,Universal version control system for tracking software and model code changes.
+Docker,DevOps,containerisation|containers|dockerfile,Intermediate,,50,Standardizes environments to guarantee reproducible builds from dev to prod.
+Kubernetes,DevOps,k8s|container orchestration,Advanced,Docker,100,"Orchestrates automated deployment, scaling, and management of containers."
+CI/CD,DevOps,continuous integration|continuous deployment|github actions,Intermediate,Git,50,"Automates code testing, linting, packaging, and deployment pipelines."
+MLflow,DevOps,mlops|experiment tracking,Intermediate,Machine Learning,50,"Tracks hyperparameters, metrics, and models across ML experiment cycles."
+Linux,DevOps,unix|ubuntu|centos,Beginner,,20,"The operating system powering almost all cloud servers, containers, and clusters."
+AWS,Cloud,amazon web services|aws cloud|s3|ec2,Intermediate,,50,The world's most widely adopted cloud platform for scalable workloads.
+GCP,Cloud,google cloud|google cloud platform|gcs,Intermediate,,50,Google's cloud suite renowned for leading data analytics and AI services.
+Azure,Cloud,microsoft azure|azure cloud,Intermediate,,50,Microsoft's cloud environment tightly integrated with enterprise services.
+Databricks,Cloud,databricks lakehouse,Intermediate,Spark,50,"Unified data intelligence platform unifying data engineering, BI, and AI."
+Tableau,Analytics,tableau desktop|tableau public,Intermediate,,50,Market-leading visual analytics tool for enterprise interactive dashboards.
+Power BI,Analytics,powerbi|power bi desktop|pbi,Intermediate,,50,Microsoft's unified business intelligence platform for reports and KPI modeling.
+Data Visualization,Analytics,dataviz|data visualisation|charts,Beginner,,20,Communicates quantitative insights clearly through intuitive visual formats.
+Plotly,Analytics,plotly.py|plotly express,Beginner,Python,20,Interactive browser-based graphing library used in modern data applications.
+Matplotlib,Analytics,plt,Beginner,Python,20,Foundational plotting library providing granular control over publication figures.
+Seaborn,Analytics,sns,Beginner,Matplotlib,20,Statistical data visualization library built on top of Matplotlib.
+Streamlit,Analytics,streamlit apps,Beginner,Python,20,Turns Python data scripts into shareable interactive web applications in minutes.
+FastAPI,Software Engineering,fastapi rest|api development,Intermediate,Python,50,High-performance modern Python web framework for building production APIs.
+Flask,Software Engineering,flask web|python flask,Beginner,Python,20,Lightweight Python WSGI microframework for microservices and prototypes.
+REST API,Software Engineering,restful api|restful services,Beginner,,20,Standard architectural style for distributed hypermedia systems over HTTP.
+GraphQL,Software Engineering,graphql api,Intermediate,,50,Query language for APIs providing clients exact requested data shapes.
+Unit Testing,Software Engineering,unit tests|test driven development|tdd,Intermediate,,50,Verifies individual units of code operate correctly in isolation.
+PyTest,Software Engineering,pytest framework,Beginner,Python,20,"The most popular Python testing framework for clean, scalable unit tests."
+Node.js,Web Development,nodejs|node js|node,Intermediate,JavaScript,30,JavaScript runtime built on Chrome V8 engine.

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Career Assistant – SkillGap{% endblock %}
+
+{% block content %}
+<main class="page-content">
+  <div class="container" style="max-width:860px">
+    <div class="mb-24">
+      <h1 style="margin-bottom:8px">Career Assistant</h1>
+      <p>Ask questions about your latest skill gap analysis, recommended learning sequence, or role compatibility.</p>
+    </div>
+
+    {% if analysis %}
+    <!-- Active context card -->
+    <div class="card mb-20" style="padding:14px 20px;border-left:4px solid var(--accent)">
+      <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
+        <div>
+          <span style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);font-weight:600">Active Analysis Context</span>
+          <div style="font-weight:600;color:var(--text-primary)">
+            {{ analysis.target_role or "Latest Analysis" }} 
+            <span style="font-weight:normal;color:var(--text-secondary);font-size:0.875rem">
+              ({{ "%.0f"|format(analysis.score or 0) }}% score · Grade {{ analysis.grade }})
+            </span>
+          </div>
+        </div>
+        <a href="/analysis/{{ analysis.id }}" class="btn btn-secondary btn-sm">View full report</a>
+      </div>
+    </div>
+
+    <!-- Chat Box -->
+    <div class="chat-container mb-24">
+      <div class="chat-messages" id="chat-messages">
+        <!-- Bot greeting -->
+        <div class="chat-msg bot">
+          <div class="chat-bubble">
+            Hello {{ user.name.split()[0] }}. I have loaded the results for your <strong>{{ analysis.target_role or 'role' }}</strong> analysis. 
+            You scored <strong>{{ "%.0f"|format(analysis.score or 0) }}% (Grade {{ analysis.grade }})</strong>.
+            What would you like to explore? You can choose a suggested question below or type your own.
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggested Questions -->
+      <div class="suggested-questions">
+        {% for q in suggested_questions %}
+        <button type="button" class="suggested-q">{{ q }}</button>
+        {% endfor %}
+      </div>
+
+      <!-- Input area -->
+      <div class="chat-input-wrap">
+        <input type="text" id="chat-input" class="chat-input" placeholder="Ask a question about your score or skills..." autocomplete="off">
+        <button type="button" id="chat-send" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Send
+        </button>
+      </div>
+    </div>
+    {% else %}
+    <!-- Empty state if no analysis exists -->
+    <div class="card">
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <h3>No analysis found</h3>
+        <p>The Career Assistant needs an analysis from your account to provide personalized insights and advice.</p>
+        <a href="/analysis/new" class="btn btn-primary">Run an analysis first</a>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+{% if analysis %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  initChat({{ analysis.id }});
+});
+</script>
+{% endif %}
+{% endblock %}

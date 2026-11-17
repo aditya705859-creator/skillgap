@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}Job Market Explorer – SkillGap{% endblock %}
+
+{% block content %}
+<main class="page-content">
+  <div class="container">
+    <div class="mb-32">
+      <h1 style="margin-bottom:8px">Job Market Explorer</h1>
+      <p>Analysis of skill requirements, co-occurrence patterns, and role clustering across 25 real-world technical roles.</p>
+    </div>
+
+    <!-- Overview Stats / Banner -->
+    <div class="card mb-24">
+      <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:16px">
+        <div>
+          <h2 style="font-size:1.125rem;margin-bottom:4px">Data Science & Software Engineering Market Analysis</h2>
+          <p style="font-size:0.875rem;margin:0">
+            Fitted across 25 career paths from our job corpus. 
+            {% if has_analysis %}
+            Your latest profile vector is projected onto the role space below.
+            {% else %}
+            Upload a resume to see your own position on the career cluster map.
+            {% endif %}
+          </p>
+        </div>
+        <div class="flex gap-8">
+          <a href="/analysis/new" class="btn btn-primary btn-sm">Analyse another role</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart 1: Skill Demand -->
+    <div class="card mb-24">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Most in-demand skills</h2>
+          <p style="font-size:0.8125rem;margin:0">Frequency of required skills across all catalogued job positions.</p>
+        </div>
+      </div>
+      <div id="demand-chart" style="height:360px"></div>
+      <div class="evidence-text" style="margin-top:12px;font-style:normal">
+        <strong>Takeaway:</strong> Python and SQL lead technical demand across more than 70% of data and software engineering roles, followed by Machine Learning and Docker.
+      </div>
+    </div>
+
+    <!-- Grid: Co-occurrence & PCA Clustering -->
+    <div class="grid grid-2 mb-24" style="gap:24px">
+      <!-- Chart 2: Skill Co-occurrence Heatmap -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Skill co-occurrence matrix</h2>
+            <p style="font-size:0.8125rem;margin:0">How often pairs of core skills appear together in the same job requirement.</p>
+          </div>
+        </div>
+        <div id="heatmap-chart" style="height:400px"></div>
+        <div class="evidence-text" style="margin-top:12px;font-style:normal">
+          <strong>Takeaway:</strong> Python co-occurs most intensely with Pandas, SQL, and Scikit-learn; Docker frequently pairs with CI/CD and AWS.
+        </div>
+      </div>
+
+      <!-- Chart 3: Role Clustering PCA Scatter -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Career role clustering (PCA + KMeans)</h2>
+            <p style="font-size:0.8125rem;margin:0">2D projection of role skill vectors with unsupervised K-Means clusters.</p>
+          </div>
+        </div>
+        <div id="pca-chart" style="height:400px"></div>
+        <div class="evidence-text" style="margin-top:12px;font-style:normal">
+          <strong>Takeaway:</strong> Roles group naturally into analytics, ML/AI, infrastructure/DevOps, and core software engineering clusters.
+          {% if has_analysis %}
+          Your profile (marked with a red diamond) shows which cluster your current skills gravitate towards.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var c = getPlotlyColors();
+  var demandData = {{ demand_data|safe }};
+  var cooccurrenceData = {{ cooccurrence_data|safe }};
+  var pcaData = {{ pca_data|safe }};
+
+  // 1. Demand Bar Chart
+  if (demandData && demandData.skills && demandData.skills.length > 0) {
+    // Show top 15 for readability
+    var topSkills = demandData.skills.slice(0, 15);
+    var topCounts = demandData.counts.slice(0, 15);
+
+    var demandTrace = {
+      x: topSkills,
+      y: topCounts,
+      type: 'bar',
+      marker: {
+        color: c.accent,
+        line: { width: 0 }
+      },
+      text: topCounts.map(function(val) { return val + ' roles'; }),
+      textposition: 'outside'
+    };
+
+    var demandLayout = getPlotlyLayout('Top 15 required skills across 25 industry roles');
+    demandLayout.yaxis.title = 'Number of roles requiring skill';
+    demandLayout.xaxis.tickangle = -35;
+    demandLayout.margin = { l: 50, r: 20, t: 40, b: 80 };
+
+    Plotly.newPlot('demand-chart', [demandTrace], demandLayout, { responsive: true, displayModeBar: false });
+  }
+
+  // 2. Co-occurrence Heatmap
+  if (cooccurrenceData && cooccurrenceData.skills && cooccurrenceData.skills.length > 0) {
+    var heatmapTrace = {
+      z: cooccurrenceData.matrix,
+      x: cooccurrenceData.skills,
+      y: cooccurrenceData.skills,
+      type: 'heatmap',
+      colorscale: [
+        [0, c.bgPrimary],
+        [0.5, 'rgba(13, 148, 136, 0.4)'],
+        [1.0, c.accent]
+      ],
+      showscale: false
+    };
+
+    var heatmapLayout = getPlotlyLayout('Skill co-occurrence frequency');
+    heatmapLayout.xaxis = { tickangle: -45, gridcolor: c.border, linecolor: c.border };
+    heatmapLayout.yaxis = { autorange: 'reversed', gridcolor: c.border, linecolor: c.border };
+    heatmapLayout.margin = { l: 80, r: 20, t: 30, b: 80 };
+
+    Plotly.newPlot('heatmap-chart', [heatmapTrace], heatmapLayout, { responsive: true, displayModeBar: false });
+  }
+
+  // 3. PCA + KMeans Scatter Plot
+  if (pcaData && pcaData.roles && pcaData.roles.length > 0) {
+    var clusterColors = ['#0D9488', '#0284C7', '#7C3AED', '#D97706', '#E11D48'];
+    var traces = [];
+
+    // Group points by cluster
+    var numClusters = Math.max.apply(null, pcaData.clusters) + 1;
+    for (var k = 0; k < numClusters; k++) {
+      var kx = [], ky = [], ktext = [];
+      for (var i = 0; i < pcaData.roles.length; i++) {
+        if (pcaData.clusters[i] === k) {
+          kx.push(pcaData.x[i]);
+          ky.push(pcaData.y[i]);
+          ktext.push('<b>' + pcaData.roles[i] + '</b><br>Category: ' + pcaData.categories[i] + '<br>Avg Salary: $' + pcaData.salaries[i].toLocaleString());
+        }
+      }
+      traces.push({
+        x: kx,
+        y: ky,
+        mode: 'markers+text',
+        type: 'scatter',
+        name: 'Cluster ' + (k + 1),
+        text: ktext.map(function(t, idx) { return ''; }), // tooltips on hover
+        hovertext: ktext,
+        hoverinfo: 'text',
+        marker: {
+          size: 11,
+          color: clusterColors[k % clusterColors.length],
+          opacity: 0.85,
+          line: { color: c.border, width: 1 }
+        }
+      });
+    }
+
+    // Role text annotations or labels
+    var textTrace = {
+      x: pcaData.x,
+      y: pcaData.y,
+      mode: 'text',
+      type: 'scatter',
+      text: pcaData.roles,
+      textposition: 'top center',
+      textfont: { size: 9, color: c.textSecondary, family: 'Inter, sans-serif' },
+      hoverinfo: 'none',
+      showlegend: false
+    };
+    traces.push(textTrace);
+
+    // If user position exists
+    if (pcaData.user_x !== null && pcaData.user_y !== null) {
+      traces.push({
+        x: [pcaData.user_x],
+        y: [pcaData.user_y],
+        mode: 'markers+text',
+        type: 'scatter',
+        name: 'Your profile',
+        text: ['YOU'],
+        textposition: 'bottom center',
+        textfont: { size: 11, color: '#DC2626', family: 'Inter, sans-serif' },
+        marker: {
+          symbol: 'diamond',
+          size: 16,
+          color: '#DC2626',
+          line: { color: '#FFFFFF', width: 2 }
+        },
+        hoverinfo: 'text',
+        hovertext: '<b>Your Current Profile</b><br>Projected via PCA'
+      });
+    }
+
+    var varX = (pcaData.explained_variance && pcaData.explained_variance[0]) ? (pcaData.explained_variance[0] * 100).toFixed(1) : '32';
+    var varY = (pcaData.explained_variance && pcaData.explained_variance[1]) ? (pcaData.explained_variance[1] * 100).toFixed(1) : '18';
+
+    var pcaLayout = getPlotlyLayout('Roles grouped by skill similarity');
+    pcaLayout.xaxis.title = 'PCA Component 1 (' + varX + '% variance)';
+    pcaLayout.yaxis.title = 'PCA Component 2 (' + varY + '% variance)';
+    pcaLayout.showlegend = false;
+    pcaLayout.margin = { l: 50, r: 20, t: 30, b: 50 };
+
+    Plotly.newPlot('pca-chart', traces, pcaLayout, { responsive: true, displayModeBar: false });
+  }
+});
+</script>
+{% endblock %}

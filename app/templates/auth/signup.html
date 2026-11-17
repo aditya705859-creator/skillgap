@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Sign up – SkillGap{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card fade-in">
+    <div class="auth-logo">
+      <a href="/" class="nav-brand" style="font-size:1.5rem">
+        <svg viewBox="0 0 36 32" width="36" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="18" width="8" height="14" rx="2" fill="var(--accent)"/>
+          <rect x="14" y="10" width="8" height="22" rx="2" stroke="var(--accent)" stroke-width="2" fill="none"/>
+          <rect x="26" y="2" width="8" height="30" rx="2" fill="var(--accent)"/>
+        </svg>
+        <span>SkillGap</span>
+      </a>
+    </div>
+    
+    <h1 class="auth-title">Create your account</h1>
+    <p class="auth-subtitle">Start comparing your skills to job requirements.</p>
+    
+    {% if errors %}
+    {% for err in errors %}
+    <div class="alert alert-error">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      {{ err }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    
+    <form method="post" action="/auth/signup">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      
+      <div class="form-group">
+        <label for="name" class="form-label">Full name</label>
+        <input type="text" id="name" name="name" class="form-input" placeholder="Alex Johnson" value="{{ form_name|default('') }}" required minlength="2" autocomplete="name">
+      </div>
+      
+      <div class="form-group">
+        <label for="email" class="form-label">Email address</label>
+        <input type="email" id="email" name="email" class="form-input" placeholder="alex@example.com" value="{{ form_email|default('') }}" required autocomplete="email">
+      </div>
+      
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" id="password" name="password" class="form-input" placeholder="At least 8 characters" required minlength="8" autocomplete="new-password">
+        <div class="form-hint">Must be at least 8 characters.</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="password_confirm" class="form-label">Confirm password</label>
+        <input type="password" id="password_confirm" name="password_confirm" class="form-input" placeholder="Re-enter your password" required minlength="8" autocomplete="new-password">
+      </div>
+      
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Create account</button>
+    </form>
+    
+    <p class="auth-footer">
+      Already have an account? <a href="/auth/login">Log in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

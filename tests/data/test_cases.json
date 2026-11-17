@@ -1,0 +1,72 @@
+[
+  {
+    "id": "tc01",
+    "description": "Should NOT match Excel in 'excellent'",
+    "text": "I am an excellent communicator with strong interpersonal skills.",
+    "expected_skills": [],
+    "should_not_match": ["Excel"]
+  },
+  {
+    "id": "tc02",
+    "description": "Should NOT match Java inside JavaScript",
+    "text": "Proficient in JavaScript, React, and Node.js development.",
+    "expected_skills": ["JavaScript", "React", "Node.js"],
+    "should_not_match": ["Java"]
+  },
+  {
+    "id": "tc03",
+    "description": "Should NOT match Git inside 'digital'",
+    "text": "Experience in digital marketing and content strategy.",
+    "expected_skills": [],
+    "should_not_match": ["Git"]
+  },
+  {
+    "id": "tc04",
+    "description": "Should NOT match ML inside HTML",
+    "text": "Built websites using HTML, CSS, and JavaScript.",
+    "expected_skills": ["HTML", "CSS", "JavaScript"],
+    "should_not_match": ["Machine Learning"]
+  },
+  {
+    "id": "tc05",
+    "description": "Should NOT match R as standalone in 'R&D' or 'for'",
+    "text": "Led R&D initiatives and worked across teams for data collection.",
+    "expected_skills": [],
+    "should_not_match": ["R"]
+  },
+  {
+    "id": "tc06",
+    "description": "Match C++ correctly",
+    "text": "Developed high-performance systems using C++ and CUDA.",
+    "expected_skills": ["C++"],
+    "should_not_match": []
+  },
+  {
+    "id": "tc07",
+    "description": "Match scikit-learn correctly",
+    "text": "Trained ML models using scikit-learn, pandas, and numpy.",
+    "expected_skills": ["scikit-learn", "Pandas", "NumPy"],
+    "should_not_match": []
+  },
+  {
+    "id": "tc08",
+    "description": "Match CI/CD correctly",
+    "text": "Set up CI/CD pipelines using GitHub Actions and Docker.",
+    "expected_skills": ["CI/CD", "Docker"],
+    "should_not_match": []
+  },
+  {
+    "id": "tc09",
+    "description": "Full data science resume extraction",
+    "text": "Skills: Python, SQL, TensorFlow, PyTorch. Experience: Built deep learning models using TensorFlow for NLP tasks. Used AWS for model deployment. Familiar with Docker and Kubernetes.",
+    "expected_skills": ["Python", "SQL", "TensorFlow", "PyTorch", "AWS", "Docker", "Kubernetes"],
+    "should_not_match": []
+  },
+  {
+    "id": "tc10",
+    "description": "Match Node.js and distinguish from plain JS",
+    "text": "Built REST APIs using Node.js and Express. Frontend in React.",
+    "expected_skills": ["Node.js", "React", "REST APIs"],
+    "should_not_match": []
+  }
+]

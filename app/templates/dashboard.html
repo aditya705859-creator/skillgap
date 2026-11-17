@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – SkillGap{% endblock %}
+
+{% block content %}
+<main class="page-content">
+  <div class="container">
+    <div class="flex items-center justify-between mb-32" style="flex-wrap:wrap;gap:16px">
+      <div>
+        <h1 style="margin-bottom:4px">Welcome back, {{ user.name.split()[0] }}</h1>
+        <p>Here is a summary of your skill analyses.</p>
+      </div>
+      <a href="/analysis/new" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New analysis
+      </a>
+    </div>
+
+    {% if analyses %}
+    <!-- Score trend chart -->
+    <div class="card mb-24">
+      <div class="card-header">
+        <h2 class="card-title">Score trend</h2>
+        <span class="chip chip-matched" style="font-size:0.75rem">{{ analyses|length }} analyses</span>
+      </div>
+      <div id="trend-chart" style="height:220px"></div>
+    </div>
+
+    <!-- Recent analyses table -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Recent analyses</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Date</th>
+              <th>Score</th>
+              <th>Grade</th>
+              <th>File</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in analyses %}
+            <tr>
+              <td>
+                <a href="/analysis/{{ a.id }}" style="font-weight:600;color:var(--text-primary)">
+                  {{ a.target_role or "Analysis" }}
+                </a>
+              </td>
+              <td style="color:var(--text-tertiary);white-space:nowrap">{{ a.created_at.strftime("%d %b %Y") }}</td>
+              <td>
+                <span style="font-weight:600;color:{% if a.score >= 75 %}var(--matched){% elif a.score >= 55 %}var(--partial){% else %}var(--missing){% endif %}">
+                  {{ "%.0f"|format(a.score or 0) }}%
+                </span>
+              </td>
+              <td>
+                <span class="chip {% if a.grade in ['A','B'] %}chip-matched{% elif a.grade == 'C' %}chip-partial{% else %}chip-missing{% endif %}">
+                  {{ a.grade or "F" }}
+                </span>
+              </td>
+              <td style="font-size:0.8125rem;color:var(--text-tertiary)">{{ a.resume_filename or "—" }}</td>
+              <td>
+                <div class="flex gap-8">
+                  <a href="/analysis/{{ a.id }}" class="btn btn-secondary btn-sm">Open</a>
+                  <form action="/analysis/{{ a.id }}/delete" method="post" style="margin:0">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-ghost btn-sm"
+                      onclick="return confirm('Delete this analysis?')"
+                      style="color:var(--missing)">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% else %}
+    <!-- Empty state -->
+    <div class="card">
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <h3>No analyses yet</h3>
+        <p>Upload your resume and paste a job description to get your first skill report.</p>
+        <a href="/analysis/new" class="btn btn-primary">Start your first analysis</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script>
+{% if analyses %}
+(function() {
+  var data = {{ trend_data|safe }};
+  if (!data.dates || data.dates.length === 0) return;
+
+  var c = getPlotlyColors();
+  var trace = {
+    x: data.dates,
+    y: data.scores,
+    text: data.roles,
+    mode: 'lines+markers',
+    type: 'scatter',
+    line: { color: c.accent, width: 2.5 },
+    marker: { color: c.accent, size: 8 },
+    hovertemplate: '<b>%{text}</b><br>Score: %{y}%<extra></extra>',
+  };
+
+  var layout = getPlotlyLayout('Score over time (' + data.dates.length + ' analyses)');
+  layout.yaxis.range = [0, 100];
+  layout.margin = { l: 50, r: 20, t: 40, b: 40 };
+
+  Plotly.newPlot('trend-chart', [trace], layout, { responsive: true, displayModeBar: false });
+})();
+{% endif %}
+</script>
+{% endblock %}

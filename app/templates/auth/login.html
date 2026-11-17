@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Log in – SkillGap{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card fade-in">
+    <div class="auth-logo">
+      <a href="/" class="nav-brand" style="font-size:1.5rem">
+        <svg viewBox="0 0 36 32" width="36" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="18" width="8" height="14" rx="2" fill="var(--accent)"/>
+          <rect x="14" y="10" width="8" height="22" rx="2" stroke="var(--accent)" stroke-width="2" fill="none"/>
+          <rect x="26" y="2" width="8" height="30" rx="2" fill="var(--accent)"/>
+        </svg>
+        <span>SkillGap</span>
+      </a>
+    </div>
+    
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-subtitle">Log in to your SkillGap account.</p>
+    
+    {% if errors %}
+    {% for err in errors %}
+    <div class="alert alert-error">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      {{ err }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    
+    <form method="post" action="/auth/login">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      
+      <div class="form-group">
+        <label for="email" class="form-label">Email address</label>
+        <input type="email" id="email" name="email" class="form-input" placeholder="alex@example.com" value="{{ form_email|default('') }}" required autocomplete="email">
+      </div>
+      
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
+      </div>
+      
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Log in</button>
+    </form>
+    
+    <p class="auth-footer">
+      Do not have an account? <a href="/auth/signup">Sign up</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

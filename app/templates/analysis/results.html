@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+{% block title %}{{ analysis.target_role }} – Analysis – SkillGap{% endblock %}
+
+{% block content %}
+<main class="page-content">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-24" style="flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="font-size:0.8125rem;color:var(--text-tertiary);margin-bottom:4px">
+          <a href="/dashboard">Dashboard</a> / Analysis #{{ analysis.id }}
+        </div>
+        <h1 style="margin-bottom:4px">{{ analysis.target_role or "Analysis" }}</h1>
+        <p style="margin:0;font-size:0.875rem">{{ analysis.created_at.strftime("%d %b %Y at %H:%M") }} · {{ analysis.resume_filename or "" }}</p>
+      </div>
+      <div class="flex gap-8">
+        <a href="/analysis/{{ analysis.id }}/report" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download report
+        </a>
+        <a href="/analysis/new" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New analysis
+        </a>
+      </div>
+    </div>
+
+    {% set counts = results.get('counts', {}) %}
+    {% set breakdown = results.get('score_breakdown', {}) %}
+
+    <!-- Score overview strip -->
+    <div class="grid grid-4 mb-24" style="gap:16px">
+      <!-- Score ring -->
+      <div class="card text-center" style="padding:20px">
+        <div class="score-ring-wrap" id="score-ring" style="width:100px;height:100px;margin:0 auto 8px">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border)" stroke-width="8"/>
+            <circle class="score-ring-fg" cx="50" cy="50" r="42" fill="none"
+              stroke="{% if analysis.grade in ['A','B'] %}var(--matched){% elif analysis.grade == 'C' %}var(--partial){% else %}var(--missing){% endif %}"
+              stroke-width="8" stroke-linecap="round"/>
+          </svg>
+          <div class="score-ring-label">
+            <span class="score-ring-value">0</span>
+            <span class="score-ring-grade" style="color:{% if analysis.grade in ['A','B'] %}var(--matched){% elif analysis.grade == 'C' %}var(--partial){% else %}var(--missing){% endif %}">
+              {{ analysis.grade }}
+            </span>
+          </div>
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-secondary)">Overall score</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--matched)">
+        <div class="stat-value" style="color:var(--matched)">{{ counts.get('matched', 0) }}</div>
+        <div class="stat-label">Matched skills</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--partial)">
+        <div class="stat-value" style="color:var(--partial)">{{ counts.get('partial', 0) }}</div>
+        <div class="stat-label">Partial matches</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--missing)">
+        <div class="stat-value" style="color:var(--missing)">{{ counts.get('missing', 0) }}</div>
+        <div class="stat-label">Missing skills</div>
+      </div>
+    </div>
+
+    {% if results.get('low_jd_skill_warning') %}
+    <div class="alert alert-warning mb-16">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Very few skills were detected in the job description. The score may not be reliable. Try pasting a more detailed JD.
+    </div>
+    {% endif %}
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <div class="tabs">
+        <button class="tab active" data-tab="overview">Overview</button>
+        <button class="tab" data-tab="skills">Skills</button>
+        <button class="tab" data-tab="roadmap">Learning roadmap</button>
+        <button class="tab" data-tab="whatif">What-if simulator</button>
+        <button class="tab" data-tab="careers">Careers</button>
+      </div>
+
+      <!-- OVERVIEW TAB -->
+      <div id="panel-overview" class="tab-panel active">
+        <div class="grid grid-2" style="gap:24px">
+          <!-- Verdict + next steps -->
+          <div>
+            <div class="card mb-16">
+              <h3 style="margin-bottom:8px">Verdict</h3>
+              <p style="color:var(--text-primary)">{{ results.get('verdict', 'No verdict available.') }}</p>
+            </div>
+            {% set next_steps = results.get('next_steps', []) %}
+            {% if next_steps %}
+            <div class="card">
+              <h3 style="margin-bottom:12px">Top 3 next steps</h3>
+              {% for step in next_steps %}
+              <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start">
+                <div style="min-width:24px;height:24px;background:var(--accent);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700">{{ loop.index }}</div>
+                <div style="font-size:0.875rem;color:var(--text-primary);padding-top:3px">{{ step }}</div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Score breakdown chart -->
+          <div class="card">
+            <div class="flex items-center gap-8 mb-12">
+              <h3 style="margin:0">Score breakdown</h3>
+              <div style="position:relative">
+                <button class="popover-trigger" aria-label="How is this calculated?">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  How is this calculated?
+                </button>
+                <div class="popover-content" style="bottom:100%;left:0;top:auto">
+                  <strong>Score formula:</strong><br>
+                  60% — exact skill matches<br>
+                  20% — partial matches (TF-IDF similarity)<br>
+                  10% — category coverage<br>
+                  10% — resume quality<br><br>
+                  Grades: A=90+, B=75-89, C=55-74, D=35-54, F&lt;35
+                </div>
+              </div>
+            </div>
+            <div id="breakdown-chart" style="height:220px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SKILLS TAB -->
+      <div id="panel-skills" class="tab-panel">
+        <!-- Filter buttons -->
+        <div class="filter-group" id="category-filters">
+          <button class="filter-btn active" onclick="filterSkills('all', this)">All</button>
+          {% set all_cats = [] %}
+          {% for s in results.get('matched_skills', []) + results.get('partial_skills', []) + results.get('missing_skills', []) %}
+            {% if s.get('category') not in all_cats %}{% set _ = all_cats.append(s.get('category')) %}{% endif %}
+          {% endfor %}
+          {% for cat in all_cats %}
+          <button class="filter-btn" onclick="filterSkills('{{ cat }}', this)">{{ cat }}</button>
+          {% endfor %}
+        </div>
+
+        <!-- Matched -->
+        {% set matched = results.get('matched_skills', []) %}
+        {% if matched %}
+        <h3 style="margin-bottom:12px;color:var(--matched)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><polyline points="20 6 9 17 4 12"/></svg>
+          Matched skills ({{ matched|length }})
+        </h3>
+        <div class="flex flex-wrap gap-8 mb-24" id="matched-chips">
+          {% for s in matched %}
+          <span class="chip chip-matched" data-category="{{ s.get('category', '') }}"
+            title="{{ s.get('evidence', '') }}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ s.name }}
+          </span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Partial -->
+        {% set partial = results.get('partial_skills', []) %}
+        {% if partial %}
+        <h3 style="margin-bottom:12px;color:var(--partial)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Partial matches ({{ partial|length }})
+          <span style="font-weight:400;font-size:0.8125rem;color:var(--text-secondary)">— you have related experience</span>
+        </h3>
+        <div class="mb-24" id="partial-cards">
+          {% for s in partial %}
+          <div class="skill-card" data-category="{{ s.get('category', '') }}">
+            <div class="skill-card-header">
+              <span class="chip chip-partial" style="font-size:0.75rem">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                {{ s.name }}
+              </span>
+              <span class="similarity">{{ "%.0f"|format(s.get('similarity', 0.5) * 100) }}% credit</span>
+              <span style="font-size:0.75rem;color:var(--text-tertiary)">via {{ s.get('related_to', '') }}</span>
+            </div>
+            {% if s.get('evidence') %}
+            <div class="evidence-text">{{ s.evidence[:180] }}</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Missing -->
+        {% set missing = results.get('missing_skills', []) %}
+        {% if missing %}
+        <h3 style="margin-bottom:12px;color:var(--missing)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Missing skills ({{ missing|length }})
+        </h3>
+        <div class="flex flex-wrap gap-8" id="missing-chips">
+          {% for s in missing %}
+          <span class="chip chip-missing" data-category="{{ s.get('category', '') }}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            {{ s.name }}
+            {% if s.get('importance') == 'required' %}<span style="font-size:0.65rem;opacity:0.7">&nbsp;req</span>{% endif %}
+          </span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- ROADMAP TAB -->
+      <div id="panel-roadmap" class="tab-panel">
+        {% set roadmap = results.get('roadmap', []) %}
+        {% if roadmap %}
+        <div class="mb-16">
+          <p>Skills are ordered from foundational to advanced, respecting prerequisites. Total estimated time: <strong>{{ roadmap|sum(attribute='hours') }} hours</strong>.</p>
+        </div>
+        {% for item in roadmap %}
+        <div class="roadmap-item fade-in">
+          <div class="roadmap-number">{{ loop.index }}</div>
+          <div class="roadmap-content">
+            <div class="roadmap-skill">{{ item.get('skill', '') }}</div>
+            <div class="roadmap-meta">
+              <span class="chip {% if item.get('difficulty', '').lower() == 'beginner' %}chip-matched{% elif item.get('difficulty', '').lower() == 'intermediate' %}chip-partial{% else %}chip-missing{% endif %}" style="font-size:0.7rem;padding:2px 8px;margin-right:6px">
+                {{ item.get('difficulty', '').capitalize() }}
+              </span>
+              <span style="margin-right:12px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ item.get('hours', '') }} hours
+              </span>
+              {% if item.get('importance') == 'required' %}
+              <span class="chip chip-missing" style="font-size:0.7rem;padding:2px 8px">Required</span>
+              {% else %}
+              <span class="chip chip-partial" style="font-size:0.7rem;padding:2px 8px">Preferred</span>
+              {% endif %}
+            </div>
+            {% if item.get('project_name') %}
+            <div style="margin-top:8px;font-size:0.8125rem;color:var(--text-secondary)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Suggested project:
+              {% if item.get('project_url') %}
+              <a href="{{ item.project_url }}" target="_blank" rel="noopener">{{ item.project_name }}</a>
+              {% else %}
+              {{ item.project_name }}
+              {% endif %}
+              {% if item.get('project_hours') %}(~{{ item.project_hours }} hrs){% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h3>No gaps to fill</h3>
+          <p>Your resume already closely matches the job description. Consider deepening existing skills.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- WHAT-IF TAB -->
+      <div id="panel-whatif" class="tab-panel">
+        <p class="mb-16">Select skills you plan to learn and see how your score changes instantly.</p>
+        <div class="grid grid-2" style="gap:24px">
+          <div>
+            <h3 style="margin-bottom:12px">Missing skills to learn</h3>
+            {% set missing = results.get('missing_skills', []) %}
+            {% if missing %}
+            <div id="whatif-skills">
+              {% for s in missing %}
+              <label class="whatif-skill">
+                <input type="checkbox" value="{{ s.name }}">
+                <span class="whatif-skill-name">{{ s.name }}</span>
+                <span style="font-size:0.75rem;color:var(--text-tertiary)">{{ s.get('category', '') }}</span>
+              </label>
+              {% endfor %}
+            </div>
+            {% else %}
+            <p>No missing skills — you match this role well!</p>
+            {% endif %}
+          </div>
+          <div>
+            <div class="card mb-16">
+              <div class="flex justify-between mb-8">
+                <div>
+                  <div style="font-size:0.75rem;color:var(--text-secondary)">Current score</div>
+                  <div style="font-size:1.5rem;font-weight:700">{{ "%.0f"|format(analysis.score or 0) }}%</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:0.75rem;color:var(--text-secondary)">Projected score</div>
+                  <div style="font-size:1.5rem;font-weight:700;color:var(--accent)"><span id="whatif-new-score">{{ "%.0f"|format(analysis.score or 0) }}</span>%</div>
+                </div>
+              </div>
+              <div id="whatif-best-next" style="font-size:0.875rem;color:var(--text-secondary);padding-top:8px;border-top:1px solid var(--border)">
+                Select skills above to see projection.
+              </div>
+            </div>
+            <div id="whatif-chart" style="height:200px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAREERS TAB -->
+      <div id="panel-careers" class="tab-panel">
+        {% set top_roles = results.get('top_roles', []) %}
+        {% if top_roles %}
+        <div class="grid grid-2" style="gap:24px">
+          <div>
+            <h3 style="margin-bottom:12px">Role fit ranking</h3>
+            {% for role in top_roles[:8] %}
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+              <div style="font-size:0.875rem;font-weight:{% if loop.index == 1 %}700{% else %}500{% endif %};min-width:160px;color:var(--text-primary)">
+                {{ loop.index }}. {{ role.role }}
+              </div>
+              <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+                <div style="width:{{ role.score }}%;height:100%;background:{% if role.score >= 75 %}var(--matched){% elif role.score >= 55 %}var(--accent){% else %}var(--partial){% endif %};border-radius:4px"></div>
+              </div>
+              <div style="font-size:0.875rem;font-weight:600;min-width:40px;text-align:right;color:{% if role.score >= 75 %}var(--matched){% elif role.score >= 55 %}var(--accent){% else %}var(--partial){% endif %}">{{ "%.0f"|format(role.score) }}%</div>
+            </div>
+            {% endfor %}
+          </div>
+          <div>
+            <h3 style="margin-bottom:12px">Skills by category</h3>
+            <div id="radar-chart" style="height:320px"></div>
+          </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <p>Role fit data not available for this analysis.</p>
+        </div>
+        {% endif %}
+      </div>
+
+    </div><!-- /tabs-container -->
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script>
+var RESULTS = {{ results_json|safe }};
+var ANALYSIS_ID = {{ analysis.id }};
+
+// Animate score ring
+document.addEventListener('DOMContentLoaded', function() {
+  animateScoreRing('score-ring', {{ analysis.score or 0 }});
+
+  // Breakdown chart
+  var bd = RESULTS.score_breakdown || {};
+  var c = getPlotlyColors();
+  if (document.getElementById('breakdown-chart') && Object.keys(bd).length) {
+    var labels = ['Exact matches', 'Partial matches', 'Category coverage', 'Resume quality'];
+    var values = [bd.exact_match||0, bd.partial_match||0, bd.category_coverage||0, bd.resume_quality||0];
+    var barColors = [c.matched, c.partial, c.accent, c.textSecondary];
+    Plotly.newPlot('breakdown-chart', [{
+      x: labels, y: values, type: 'bar',
+      marker: { color: barColors },
+      text: values.map(function(v){return v.toFixed(1)+'pts';}),
+      textposition: 'outside',
+    }], getPlotlyLayout('You scored ' + (RESULTS.score_breakdown||{}).total + ' out of 100'), {responsive:true,displayModeBar:false});
+  }
+
+  // Radar chart
+  var catScores = RESULTS.category_scores || {};
+  var catKeys = Object.keys(catScores);
+  if (document.getElementById('radar-chart') && catKeys.length > 2) {
+    var vals = catKeys.map(function(k){ return catScores[k]; });
+    vals.push(vals[0]); // close the polygon
+    var cats = catKeys.concat([catKeys[0]]);
+    Plotly.newPlot('radar-chart', [{
+      type: 'scatterpolar',
+      r: vals.map(function(v){ return Math.round(v*100); }),
+      theta: cats,
+      fill: 'toself',
+      fillcolor: 'rgba(13,148,136,0.15)',
+      line: { color: c.accent },
+      name: 'Your profile',
+    }], {
+      polar: { radialaxis: { visible: true, range: [0, 100], gridcolor: c.border } },
+      paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { family: 'Inter, sans-serif', color: c.textSecondary, size: 11 },
+      title: { text: 'Skill coverage by category', font: { size: 13, color: c.text } },
+      margin: { l:40, r:40, t:40, b:20 },
+      showlegend: false,
+    }, {responsive:true, displayModeBar:false});
+  }
+
+  // What-if simulator
+  initWhatIf(ANALYSIS_ID);
+
+  // Initial what-if chart
+  var c = getPlotlyColors();
+  if (document.getElementById('whatif-chart')) {
+    Plotly.newPlot('whatif-chart', [{
+      x: ['Current', 'Projected'],
+      y: [{{ analysis.score or 0 }}, {{ analysis.score or 0 }}],
+      type: 'bar',
+      marker: { color: [c.textSecondary, c.accent] },
+      text: ['{{ "%.0f"|format(analysis.score or 0) }}%', '{{ "%.0f"|format(analysis.score or 0) }}%'],
+      textposition: 'outside',
+    }], getPlotlyLayout('Score before and after learning'), {responsive:true, displayModeBar:false});
+  }
+});
+
+// Category filter
+function filterSkills(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  document.querySelectorAll('[data-category]').forEach(function(el) {
+    if (cat === 'all' || el.dataset.category === cat) {
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+</script>
+{% endblock %}
