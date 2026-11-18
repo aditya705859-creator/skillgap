@@ -67,12 +67,42 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         .all()
     )
 
-    # Trend data for chart
+    chronological = list(reversed(analyses))
+    latest_a = analyses[0] if analyses else None
+    earliest_a = chronological[0] if chronological else None
+
+    # Handle duplicate dates by appending run index
+    date_counts = {}
+    for a in chronological:
+        d_str = a.created_at.strftime("%d %b")
+        date_counts[d_str] = date_counts.get(d_str, 0) + 1
+
+    seen_counts = {}
+    display_labels = []
+    for a in chronological:
+        d_str = a.created_at.strftime("%d %b")
+        if date_counts[d_str] > 1:
+            seen_counts[d_str] = seen_counts.get(d_str, 0) + 1
+            display_labels.append(f"{d_str} (#{seen_counts[d_str]})")
+        else:
+            display_labels.append(d_str)
+
     trend_data = {
-        "dates": [a.created_at.strftime("%d %b") for a in reversed(analyses)],
-        "scores": [round(a.score or 0, 1) for a in reversed(analyses)],
-        "roles": [a.target_role or "Analysis" for a in reversed(analyses)],
+        "dates": display_labels,
+        "raw_dates": [a.created_at.strftime("%d %b %Y, %H:%M") for a in chronological],
+        "scores": [round(a.score or 0, 1) for a in chronological],
+        "roles": [a.target_role or "Analysis" for a in chronological],
+        "grades": [a.grade or "F" for a in chronological],
+        "ids": [a.id for a in chronological],
     }
+
+    latest_score = round(latest_a.score or 0, 1) if latest_a else 0
+    latest_grade = latest_a.grade or "F" if latest_a else "F"
+    latest_role = latest_a.target_role or "Role" if latest_a else ""
+    earliest_score = round(earliest_a.score or 0, 1) if earliest_a else 0
+    score_change = round(latest_score - earliest_score, 1) if len(analyses) > 1 else None
+    best_score = round(max((a.score or 0) for a in analyses), 1) if analyses else 0
+    avg_score = round(sum((a.score or 0) for a in analyses) / len(analyses), 1) if analyses else 0
 
     return request.app.state.templates.TemplateResponse(
         "dashboard.html",
@@ -81,6 +111,12 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
             active_page="dashboard",
             analyses=analyses,
             trend_data=json.dumps(trend_data),
+            latest_score=latest_score,
+            latest_grade=latest_grade,
+            latest_role=latest_role,
+            score_change=score_change,
+            best_score=best_score,
+            avg_score=avg_score,
         ),
     )
 

@@ -18,11 +18,64 @@
     {% if analyses %}
     <!-- Score trend chart -->
     <div class="card mb-24">
-      <div class="card-header">
-        <h2 class="card-title">Score trend</h2>
-        <span class="chip chip-matched" style="font-size:0.75rem">{{ analyses|length }} analyses</span>
+      <div class="card-header" style="flex-wrap:wrap;gap:12px;align-items:flex-start">
+        <div>
+          <div class="flex items-center gap-8">
+            <h2 class="card-title" style="margin:0">Score progression</h2>
+            <span class="chip chip-matched" style="font-size:0.75rem;padding:2px 8px">
+              {{ analyses|length }} {{ 'analysis' if analyses|length == 1 else 'analyses' }}
+            </span>
+          </div>
+          <p style="font-size:0.875rem;color:var(--text-secondary);margin:6px 0 0">
+            {% if analyses|length == 1 %}
+            Baseline established: <strong>{{ "%.0f"|format(latest_score) }}% (Grade {{ latest_grade }})</strong> for <strong>{{ latest_role }}</strong>. Target is <strong>75% (Grade B)</strong> for competitive alignment.
+            {% elif score_change is not none and score_change > 0 %}
+            Your skill coverage improved by <strong style="color:var(--matched)">+{{ score_change }}%</strong> across {{ analyses|length }} evaluations.
+            {% elif score_change is not none and score_change < 0 %}
+            Latest score: <strong>{{ "%.0f"|format(latest_score) }}%</strong> for {{ latest_role }}. Target is <strong>75% (Grade B)</strong>.
+            {% else %}
+            Latest score: <strong>{{ "%.0f"|format(latest_score) }}%</strong>. Consistent coverage across evaluated roles.
+            {% endif %}
+          </p>
+        </div>
+
+        <!-- Metric Badges -->
+        <div class="flex items-center gap-12" style="flex-wrap:wrap">
+          <div style="background:var(--bg-secondary);padding:6px 14px;border-radius:var(--radius-md);border:1px solid var(--border);text-align:right">
+            <div style="font-size:0.6875rem;color:var(--text-tertiary);text-transform:uppercase;font-weight:600">Latest score</div>
+            <div style="font-size:1.125rem;font-weight:700;color:var(--accent);line-height:1.2">
+              {{ "%.0f"|format(latest_score) }}%
+              <span style="font-size:0.75rem;font-weight:600;color:var(--text-secondary)">({{ latest_grade }})</span>
+            </div>
+          </div>
+          {% if score_change is not none %}
+          <div style="background:var(--bg-secondary);padding:6px 14px;border-radius:var(--radius-md);border:1px solid var(--border);text-align:right">
+            <div style="font-size:0.6875rem;color:var(--text-tertiary);text-transform:uppercase;font-weight:600">Net change</div>
+            <div style="font-size:1.125rem;font-weight:700;color:{% if score_change > 0 %}var(--matched){% elif score_change < 0 %}var(--missing){% else %}var(--text-secondary){% endif %};line-height:1.2">
+              {% if score_change > 0 %}+{% endif %}{{ score_change }}%
+            </div>
+          </div>
+          {% endif %}
+          <div style="background:var(--bg-secondary);padding:6px 14px;border-radius:var(--radius-md);border:1px solid var(--border);text-align:right">
+            <div style="font-size:0.6875rem;color:var(--text-tertiary);text-transform:uppercase;font-weight:600">Target</div>
+            <div style="font-size:1.125rem;font-weight:700;color:var(--text-primary);line-height:1.2">
+              75% <span style="font-size:0.75rem;font-weight:600;color:var(--text-secondary)">(B)</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div id="trend-chart" style="height:220px"></div>
+
+      <div id="trend-chart" style="height:260px;width:100%"></div>
+
+      {% if analyses|length == 1 %}
+      <div class="evidence-text" style="margin-top:12px;font-style:normal;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <strong>Baseline recorded!</strong> Run another analysis for a different job description to unlock your dynamic growth curve and role comparisons.
+        </span>
+        <a href="/analysis/new" class="btn btn-secondary btn-sm" style="padding:4px 10px;font-size:0.75rem">Analyse another job</a>
+      </div>
+      {% endif %}
     </div>
 
     <!-- Recent analyses table -->
@@ -111,22 +164,169 @@
   if (!data.dates || data.dates.length === 0) return;
 
   var c = getPlotlyColors();
-  var trace = {
-    x: data.dates,
-    y: data.scores,
-    text: data.roles,
-    mode: 'lines+markers',
-    type: 'scatter',
-    line: { color: c.accent, width: 2.5 },
-    marker: { color: c.accent, size: 8 },
-    hovertemplate: '<b>%{text}</b><br>Score: %{y}%<extra></extra>',
+  var traces = [];
+  var annotations = [
+    {
+      x: 0.99,
+      y: 76.5,
+      xref: 'paper',
+      yref: 'y',
+      text: 'Target: Grade B (75%)',
+      showarrow: false,
+      xanchor: 'right',
+      yanchor: 'bottom',
+      font: { family: 'Inter, sans-serif', size: 11, color: c.accent, weight: 600 }
+    }
+  ];
+
+  var shapes = [
+    // Subtle competitive band (75-100%)
+    {
+      type: 'rect',
+      xref: 'paper',
+      yref: 'y',
+      x0: 0,
+      x1: 1,
+      y0: 75,
+      y1: 100,
+      fillcolor: 'rgba(16, 185, 129, 0.05)',
+      line: { width: 0 },
+      layer: 'below'
+    },
+    // Subtle developing band (55-75%)
+    {
+      type: 'rect',
+      xref: 'paper',
+      yref: 'y',
+      x0: 0,
+      x1: 1,
+      y0: 55,
+      y1: 75,
+      fillcolor: 'rgba(245, 158, 11, 0.03)',
+      line: { width: 0 },
+      layer: 'below'
+    },
+    // 75% target dashed threshold
+    {
+      type: 'line',
+      xref: 'paper',
+      yref: 'y',
+      x0: 0,
+      x1: 1,
+      y0: 75,
+      y1: 75,
+      line: { color: c.accent, width: 1.5, dash: 'dash' }
+    }
+  ];
+
+  if (data.dates.length === 1) {
+    // 1 Analysis State: Sleek milestone pin and benchmark baseline
+    var scoreVal = data.scores[0];
+    var roleVal = data.roles[0];
+    var gradeVal = data.grades[0] || '';
+    var dateVal = data.raw_dates[0] || data.dates[0];
+
+    // Pillar bar to anchor the point
+    traces.push({
+      x: [data.dates[0]],
+      y: [scoreVal],
+      type: 'bar',
+      width: 0.18,
+      marker: {
+        color: 'rgba(13, 148, 136, 0.25)',
+        line: { color: c.accent, width: 1.5 }
+      },
+      hoverinfo: 'none',
+      showlegend: false
+    });
+
+    // Luminous milestone marker
+    traces.push({
+      x: [data.dates[0]],
+      y: [scoreVal],
+      mode: 'markers',
+      type: 'scatter',
+      marker: {
+        size: 15,
+        color: c.accent,
+        line: { color: '#ffffff', width: 3 }
+      },
+      customdata: [[roleVal, gradeVal, dateVal]],
+      hovertemplate: '<b>%{customdata[0]}</b><br>Score: <b>%{y}%</b> · Grade %{customdata[1]}<br><span style="font-size:11px;color:#94a3b8">%{customdata[2]}</span><extra></extra>',
+      showlegend: false
+    });
+
+    // Milestone Callout annotation pointing directly at the point
+    annotations.push({
+      x: data.dates[0],
+      y: scoreVal,
+      xref: 'x',
+      yref: 'y',
+      text: '<b>Baseline: ' + scoreVal + '% (' + gradeVal + ')</b><br><span style="font-size:10px">' + roleVal + '</span>',
+      showarrow: true,
+      arrowhead: 2,
+      arrowsize: 1,
+      arrowwidth: 2,
+      arrowcolor: c.accent,
+      ax: 0,
+      ay: scoreVal > 60 ? 45 : -45,
+      bgcolor: c.bg,
+      bordercolor: c.accent,
+      borderwidth: 1.5,
+      borderpad: 6,
+      font: { family: 'Inter, sans-serif', size: 11, color: c.text }
+    });
+  } else {
+    // Multiple Analyses: Smooth spline area chart
+    var customdata = data.roles.map(function(r, idx) {
+      return [r, data.grades[idx] || '', data.raw_dates[idx] || ''];
+    });
+
+    traces.push({
+      x: data.dates,
+      y: data.scores,
+      customdata: customdata,
+      mode: 'lines+markers+text',
+      type: 'scatter',
+      line: { shape: 'spline', smoothing: 1.25, width: 3.5, color: c.accent },
+      fill: 'tozeroy',
+      fillcolor: 'rgba(13, 148, 136, 0.12)',
+      marker: {
+        size: 10,
+        color: c.accent,
+        line: { color: '#ffffff', width: 2 }
+      },
+      text: data.scores.map(function(s) { return s + '%'; }),
+      textposition: 'top center',
+      textfont: { family: 'Inter, sans-serif', size: 11, color: c.text },
+      hovertemplate: '<b>%{customdata[0]}</b><br>Score: <b>%{y}%</b> · Grade %{customdata[1]}<br><span style="font-size:11px;color:#94a3b8">%{customdata[2]}</span><extra></extra>',
+      showlegend: false
+    });
+  }
+
+  var layout = {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { family: 'Inter, sans-serif', color: c.textSecondary, size: 12 },
+    margin: { l: 45, r: 25, t: 20, b: 40 },
+    xaxis: {
+      gridcolor: c.border,
+      linecolor: c.border,
+      zeroline: false
+    },
+    yaxis: {
+      range: [0, 105],
+      dtick: 25,
+      ticksuffix: '%',
+      gridcolor: c.border,
+      linecolor: c.border,
+      zeroline: false
+    },
+    shapes: shapes,
+    annotations: annotations
   };
 
-  var layout = getPlotlyLayout('Score over time (' + data.dates.length + ' analyses)');
-  layout.yaxis.range = [0, 100];
-  layout.margin = { l: 50, r: 20, t: 40, b: 40 };
-
-  Plotly.newPlot('trend-chart', [trace], layout, { responsive: true, displayModeBar: false });
+  Plotly.newPlot('trend-chart', traces, layout, { responsive: true, displayModeBar: false });
 })();
 {% endif %}
 </script>
