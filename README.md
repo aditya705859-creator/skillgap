@@ -1,3 +1,14 @@
+---
+title: SkillGap AI - Resume & Career Readiness Platform
+emoji: 🎯
+colorFrom: teal
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+suggested_hardware: cpu-basic
+---
+
 # SkillGap — Intelligent Resume-Job Alignment & Skill Roadmapping Platform
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-teal.svg)](https://www.python.org/downloads/)
