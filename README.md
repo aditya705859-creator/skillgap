@@ -1,7 +1,7 @@
 ---
 title: SkillGap AI - Resume & Career Readiness Platform
 emoji: 🎯
-colorFrom: teal
+colorFrom: indigo
 colorTo: green
 sdk: docker
 app_port: 7860
